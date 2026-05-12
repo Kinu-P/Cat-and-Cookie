@@ -10,11 +10,12 @@
         h1 { color: #333; margin-bottom: 20px; font-size: 36px; font-weight: bold; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; color: #555; }
         input:focus { outline: none; border-color: #5c67f2; }
-        button { width: 100%; padding: 12px; background-color: #5c67f2; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
+        button { width: 100%; padding: 12px; background-color: #5c67f2; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; margin-top: 5px; }
         button:hover { background-color: #4a54e1; }
         .hint { margin-top: 20px; color: #777; font-size: 16px; line-height: 1.6; }
         .flag-box { color: #d9534f; font-weight: bold; font-size: 18px; border: 2px dashed #d9534f; padding: 15px; margin-top: 20px; }
         .admin-msg { color: #28a745; font-weight: bold; }
+        .error-msg { color: #e74c3c; font-size: 14px; font-weight: bold; margin-top: 5px; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -66,11 +67,11 @@
                 `;
             } 
             else {
-                // 加入了 autocomplete="off"，確保輸入框完全空白，符合你的截圖
                 app.innerHTML = `
                     <h1>Login</h1>
                     <input type="text" id="username" placeholder="Username" autocomplete="off">
                     <input type="password" id="password" placeholder="Password" autocomplete="off">
+                    <div id="error-msg" class="error-msg"></div>
                     <button onclick="handleLogin()">Sign In</button>
                     <p class="hint">Only administrators can access the cat gallery.</p>
                 `;
@@ -78,19 +79,25 @@
         }
 
         function handleLogin() {
-            // 強制清空可能殘留的幽靈 Cookie，確保只有一個 session
-            clearCookie('user');
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value.trim();
+
+            if (userVal === '' && passVal === '') {
+                document.getElementById('error-msg').innerText = '[At least enter something!]';
+                return;
+            }
+
+            clearCookie('guest');
             clearCookie('admin');
             
-            // 派發唯一指定的 Cookie
-            setCookie('session', 'ZmxhZyBpcyBub3QgaGVyZSBidXQgY2xvc2U=');
+            setCookie('guest', 'ZmxhZyBpcyBub3QgaGVyZSBidXQgY2xvc2U=');
             sessionStorage.setItem('isLoggedIn', 'true');
             render();
         }
 
         function handleLogout() {
             sessionStorage.removeItem('isLoggedIn');
-            clearCookie('session');
+            clearCookie('guest');
             clearCookie('admin');
             render();
         }
