@@ -43,20 +43,30 @@
             document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
 
-        function render() {
+        async function render() {
             const adminCookie = getCookie('admin');
 
-            if (adminCookie === 'ZWFzeS4gdXNlIHlvdXIgaW1hZ2luYXRpb24=') {
-                app.innerHTML = `
-                    <h1>Admin Panel</h1>
-                    <p class="admin-msg">Success! You have gained admin access.</p>
-                    <p>Cat images are currently loading...</p>
-                    <div class="flag-box">gayCTF{go@d_jOb}</div>
-                    <br>
-                    <button onclick="handleLogout()">Logout</button>
-                `;
+            if (adminCookie) {
+                try {
+                    const response = await fetch(adminCookie + '.txt');
+                    if (response.ok) {
+                        const flagData = await response.text();
+                        app.innerHTML = `
+                            <h1>Admin Panel</h1>
+                            <p class="admin-msg">Success! You have gained admin access.</p>
+                            <p>Cat images are currently loading...</p>
+                            <div class="flag-box">${flagData}</div>
+                            <br>
+                            <button onclick="handleLogout()">Logout</button>
+                        `;
+                        return;
+                    }
+                } catch (error) {
+                    console.log("Failed to load resources.");
+                }
             } 
-            else if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 app.innerHTML = `
                     <h1>Guest Access</h1>
                     <p style="color: #e67e22;">Too bad, only admin can see cats. Maybe you can lure the cats out through Cookie.</p>
@@ -79,10 +89,10 @@
         }
 
         function handleLogin() {
-            const userVal = document.getElementById('username').value.trim();
-            const passVal = document.getElementById('password').value.trim();
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
 
-            if (userVal === '' && passVal === '') {
+            if (u === '' || p === '') {
                 document.getElementById('error-msg').innerText = '[At least enter something!]';
                 return;
             }
