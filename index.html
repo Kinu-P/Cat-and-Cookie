@@ -7,11 +7,12 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .container { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h1 { color: #333; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #5c67f2; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        h1 { color: #333; margin-bottom: 20px; font-size: 36px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; color: #555; }
+        input:focus { outline: none; border-color: #5c67f2; }
+        button { width: 100%; padding: 12px; background-color: #5c67f2; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
         button:hover { background-color: #4a54e1; }
-        .hint { margin-top: 20px; color: #777; font-size: 14px; line-height: 1.6; }
+        .hint { margin-top: 20px; color: #777; font-size: 16px; line-height: 1.6; }
         .flag-box { color: #d9534f; font-weight: bold; font-size: 18px; border: 2px dashed #d9534f; padding: 15px; margin-top: 20px; }
         .admin-msg { color: #28a745; font-weight: bold; }
     </style>
@@ -22,7 +23,6 @@
     <script>
         const app = document.getElementById('app');
 
-        // 改良版：不設定 expires，使其成為 Session Cookie (關閉瀏覽器即刪除)
         function setCookie(name, value) {
             document.cookie = name + "=" + value + ";path=/";
         }
@@ -38,16 +38,13 @@
             return null;
         }
 
-        // 強制刪除 Cookie 的函數
         function clearCookie(name) {
             document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
 
         function render() {
-            // 只檢查有沒有名為 'admin' 的 Cookie
             const adminCookie = getCookie('admin');
 
-            // 判斷是否成功觸發 Admin
             if (adminCookie === 'ZWFzeS4gdXNlIHlvdXIgaW1hZ2luYXRpb24=') {
                 app.innerHTML = `
                     <h1>Admin Panel</h1>
@@ -58,7 +55,6 @@
                     <button onclick="handleLogout()">Logout</button>
                 `;
             } 
-            // 判斷是否為一般登入狀態
             else if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 app.innerHTML = `
                     <h1>Guest Access</h1>
@@ -69,12 +65,12 @@
                     <button onclick="handleLogout()">Back to Login</button>
                 `;
             } 
-            // 登入首頁 (移除了預設的帳號密碼 value)
             else {
+                // 加入了 autocomplete="off"，確保輸入框完全空白，符合你的截圖
                 app.innerHTML = `
                     <h1>Login</h1>
-                    <input type="text" id="username" placeholder="Username">
-                    <input type="password" id="password" placeholder="Password">
+                    <input type="text" id="username" placeholder="Username" autocomplete="off">
+                    <input type="password" id="password" placeholder="Password" autocomplete="off">
                     <button onclick="handleLogin()">Sign In</button>
                     <p class="hint">Only administrators can access the cat gallery.</p>
                 `;
@@ -82,7 +78,11 @@
         }
 
         function handleLogin() {
-            // 登入時只派發這「唯一」的一個 Cookie
+            // 強制清空可能殘留的幽靈 Cookie，確保只有一個 session
+            clearCookie('user');
+            clearCookie('admin');
+            
+            // 派發唯一指定的 Cookie
             setCookie('session', 'ZmxhZyBpcyBub3QgaGVyZSBidXQgY2xvc2U=');
             sessionStorage.setItem('isLoggedIn', 'true');
             render();
@@ -90,7 +90,6 @@
 
         function handleLogout() {
             sessionStorage.removeItem('isLoggedIn');
-            // 確保登出時清空所有可能存在的 Cookie
             clearCookie('session');
             clearCookie('admin');
             render();
