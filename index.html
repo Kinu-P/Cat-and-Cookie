@@ -14,7 +14,6 @@
         .hint { margin-top: 20px; color: #777; font-size: 14px; line-height: 1.6; }
         .flag-box { color: #d9534f; font-weight: bold; font-size: 18px; border: 2px dashed #d9534f; padding: 15px; margin-top: 20px; }
         .admin-msg { color: #28a745; font-weight: bold; }
-        .warning { color: #e74c3c; font-size: 12px; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -23,11 +22,9 @@
     <script>
         const app = document.getElementById('app');
 
+        // 改良版：不設定 expires，使其成為 Session Cookie (關閉瀏覽器即刪除)
         function setCookie(name, value) {
-            const d = new Date();
-            d.setTime(d.getTime() + (24*60*60*1000));
-            let expires = "expires="+ d.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            document.cookie = name + "=" + value + ";path=/";
         }
 
         function getCookie(name) {
@@ -41,16 +38,16 @@
             return null;
         }
 
+        // 強制刪除 Cookie 的函數
         function clearCookie(name) {
             document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
 
         function render() {
-            // 現在我們只檢查有沒有名為 'admin' 的 Cookie
+            // 只檢查有沒有名為 'admin' 的 Cookie
             const adminCookie = getCookie('admin');
-            const isLocalFile = window.location.protocol === 'file:';
 
-            // 判斷是否為 Admin (Name 必須是 admin，Value 必須是指定編碼)
+            // 判斷是否成功觸發 Admin
             if (adminCookie === 'ZWFzeS4gdXNlIHlvdXIgaW1hZ2luYXRpb24=') {
                 app.innerHTML = `
                     <h1>Admin Panel</h1>
@@ -72,21 +69,20 @@
                     <button onclick="handleLogout()">Back to Login</button>
                 `;
             } 
-            // 登入首頁
+            // 登入首頁 (移除了預設的帳號密碼 value)
             else {
                 app.innerHTML = `
                     <h1>Login</h1>
-                    <input type="text" id="username" placeholder="Username" value="guest">
-                    <input type="password" id="password" placeholder="Password" value="password">
+                    <input type="text" id="username" placeholder="Username">
+                    <input type="password" id="password" placeholder="Password">
                     <button onclick="handleLogin()">Sign In</button>
                     <p class="hint">Only administrators can access the cat gallery.</p>
-                    ${isLocalFile ? '<p class="warning">Warning: You are opening this file locally (file://). Cookies may not work in your browser.</p>' : ''}
                 `;
             }
         }
 
         function handleLogin() {
-            // 登入時派發一個假的提示 Cookie
+            // 登入時只派發這「唯一」的一個 Cookie
             setCookie('session', 'ZmxhZyBpcyBub3QgaGVyZSBidXQgY2xvc2U=');
             sessionStorage.setItem('isLoggedIn', 'true');
             render();
@@ -94,7 +90,7 @@
 
         function handleLogout() {
             sessionStorage.removeItem('isLoggedIn');
-            // 確保登出時清除可能產生的所有 Cookie
+            // 確保登出時清空所有可能存在的 Cookie
             clearCookie('session');
             clearCookie('admin');
             render();
