@@ -24,7 +24,6 @@
         const app = document.getElementById('app');
 
         function setCookie(name, value) {
-            // 設定 Cookie，有效期限為 1 天
             const d = new Date();
             d.setTime(d.getTime() + (24*60*60*1000));
             let expires = "expires="+ d.toUTCString();
@@ -47,12 +46,12 @@
         }
 
         function render() {
-            const user = getCookie('user');
-            const session = getCookie('session');
+            // 現在我們只檢查有沒有名為 'admin' 的 Cookie
+            const adminCookie = getCookie('admin');
             const isLocalFile = window.location.protocol === 'file:';
 
-            // 判斷是否為 Admin (判斷 Cookie)
-            if (user === 'admin' && session === 'ZWFzeS4gdXNlIHlvdXIgaW1hZ2luYXRpb24=') {
+            // 判斷是否為 Admin (Name 必須是 admin，Value 必須是指定編碼)
+            if (adminCookie === 'ZWFzeS4gdXNlIHlvdXIgaW1hZ2luYXRpb24=') {
                 app.innerHTML = `
                     <h1>Admin Panel</h1>
                     <p class="admin-msg">Success! You have gained admin access.</p>
@@ -81,24 +80,23 @@
                     <input type="password" id="password" placeholder="Password" value="password">
                     <button onclick="handleLogin()">Sign In</button>
                     <p class="hint">Only administrators can access the cat gallery.</p>
-                    ${isLocalFile ? '<p class="warning">Warning: You are opening this file locally (file://). Cookies may not work in your browser. Please use a local server or online editor.</p>' : ''}
+                    ${isLocalFile ? '<p class="warning">Warning: You are opening this file locally (file://). Cookies may not work in your browser.</p>' : ''}
                 `;
             }
         }
 
         function handleLogin() {
-            // 模擬後端：登入成功後派發 Cookie
-            setCookie('user', 'Z3Vlc3Q=');
+            // 登入時派發一個假的提示 Cookie
             setCookie('session', 'ZmxhZyBpcyBub3QgaGVyZSBidXQgY2xvc2U=');
             sessionStorage.setItem('isLoggedIn', 'true');
             render();
         }
 
         function handleLogout() {
-            // 登出時清除狀態與 Cookie
             sessionStorage.removeItem('isLoggedIn');
-            clearCookie('user');
+            // 確保登出時清除可能產生的所有 Cookie
             clearCookie('session');
+            clearCookie('admin');
             render();
         }
 
