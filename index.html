@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Lovers Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #333; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #5c67f2; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        button:hover { background-color: #4a54e1; }
+        .hint { margin-top: 20px; color: #777; font-size: 14px; line-height: 1.6; }
+        .flag-box { color: #d9534f; font-weight: bold; font-size: 18px; border: 2px dashed #d9534f; padding: 15px; margin-top: 20px; }
+        .admin-msg { color: #28a745; font-weight: bold; }
+        .warning { color: #e74c3c; font-size: 12px; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="app" class="container"></div>
+
+    <script>
+        const app = document.getElementById('app');
+
+        function setCookie(name, value) {
+            // 設定 Cookie，有效期限為 1 天
+            const d = new Date();
+            d.setTime(d.getTime() + (24*60*60*1000));
+            let expires = "expires="+ d.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i=0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function clearCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        }
+
+        function render() {
+            const user = getCookie('user');
+            const session = getCookie('session');
+            const isLocalFile = window.location.protocol === 'file:';
+
+            // 判斷是否為 Admin (判斷 Cookie)
+            if (user === 'admin' && session === 'ZWFzeS4gdXNlIHlvdXIgaW1hZ2luYXRpb24=') {
+                app.innerHTML = `
+                    <h1>Admin Panel</h1>
+                    <p class="admin-msg">Success! You have gained admin access.</p>
+                    <p>Cat images are currently loading...</p>
+                    <div class="flag-box">gayCTF{go@d_jOb}</div>
+                    <br>
+                    <button onclick="handleLogout()">Logout</button>
+                `;
+            } 
+            // 判斷是否為一般登入狀態
+            else if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                app.innerHTML = `
+                    <h1>Guest Access</h1>
+                    <p style="color: #e67e22;">Too bad, only admin can see cats. Maybe you can lure the cats out through Cookie.</p>
+                    <hr>
+                    <p class="hint">Cookie is easy. use your imagination</p>
+                    <br>
+                    <button onclick="handleLogout()">Back to Login</button>
+                `;
+            } 
+            // 登入首頁
+            else {
+                app.innerHTML = `
+                    <h1>Login</h1>
+                    <input type="text" id="username" placeholder="Username" value="guest">
+                    <input type="password" id="password" placeholder="Password" value="password">
+                    <button onclick="handleLogin()">Sign In</button>
+                    <p class="hint">Only administrators can access the cat gallery.</p>
+                    ${isLocalFile ? '<p class="warning">Warning: You are opening this file locally (file://). Cookies may not work in your browser. Please use a local server or online editor.</p>' : ''}
+                `;
+            }
+        }
+
+        function handleLogin() {
+            // 模擬後端：登入成功後派發 Cookie
+            setCookie('user', 'Z3Vlc3Q=');
+            setCookie('session', 'ZmxhZyBpcyBub3QgaGVyZSBidXQgY2xvc2U=');
+            sessionStorage.setItem('isLoggedIn', 'true');
+            render();
+        }
+
+        function handleLogout() {
+            // 登出時清除狀態與 Cookie
+            sessionStorage.removeItem('isLoggedIn');
+            clearCookie('user');
+            clearCookie('session');
+            render();
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
